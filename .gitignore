@@ -1,0 +1,6 @@
+venv
+.ipynb_checkpoints
+words_with_similars.json
+.DS_Store
+__pycache__
+ourmodel.json
