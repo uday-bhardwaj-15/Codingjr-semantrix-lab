@@ -40,9 +40,14 @@ def run_model(model_name):
         TARGET = []
 
         # Sometimes target lines take time to load so we wait until its loaded
-        while len(TARGET) == 0:
-            TARGET = driver.execute_script(
-                "return this.game.currentGame.targetLines")
+        while not TARGET:
+            try:
+                TARGET = driver.execute_script(
+                    "return this.game.currentGame.targetLines") or []
+            except Exception:
+                TARGET = []
+            if not TARGET:
+                time.sleep(1)
 
         print("target", TARGET)
 

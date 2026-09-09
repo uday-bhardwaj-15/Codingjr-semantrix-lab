@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodingJr — Semantic Experiences</title>
+    <meta
+      name="description"
+      content="CodingJr Semantic Labs - Interactive word association and coding games powered by AI and semantic analysis."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Decorative background shapes -->
+    <div class="bg-shape bg-shape-tl"></div>
+    <div class="bg-shape bg-shape-br"></div>
+
+    <!-- Doodle SVGs -->
+    <svg
+      class="doodle doodle-star-tl"
+      width="36"
+      height="36"
+      viewBox="0 0 24 24"
+      fill="#facc15"
+      stroke="#eab308"
+      stroke-width="1.5"
+    >
+      <polygon
+        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+      ></polygon>
+    </svg>
+
+    <svg
+      class="doodle doodle-star-br"
+      width="32"
+      height="32"
+      viewBox="0 0 24 24"
+      fill="#fde047"
+      stroke="#eab308"
+      stroke-width="1.5"
+    >
+      <polygon
+        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+      ></polygon>
+    </svg>
+
+    <div class="doodle doodle-plane">
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#3b82f6"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M22 2L11 13"></path>
+        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+      </svg>
+      <svg
+        class="doodle-trail"
+        width="120"
+        height="60"
+        viewBox="0 0 120 60"
+        fill="none"
+      >
+        <path
+          d="M5 50 Q 40 10, 110 20"
+          stroke="#93c5fd"
+          stroke-width="2"
+          stroke-dasharray="4 4"
+        />
+      </svg>
+    </div>
+
+    <!-- Top Right Navigation / Utility Buttons -->
+    <header class="top-nav">
+      <!-- <div class="nav-controls">
+        <button
+          id="btn-sound-toggle"
+          class="control-btn"
+          title="Toggle Sound"
+          aria-label="Toggle Sound"
+        >
+          <svg
+            id="icon-sound-on"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path
+              d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"
+            ></path>
+          </svg>
+          <svg
+            id="icon-sound-off"
+            class="hidden"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button> -->
+<!-- 
+        <button
+          id="btn-contrast-toggle"
+          class="control-btn"
+          title="Color Assist & Contrast"
+          aria-label="High Contrast"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button> -->
+
+        <button
+          id="btn-info"
+          class="control-btn"
+          title="How to Play & About"
+          aria-label="Game Info"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </button>
+
+        <!-- <button
+          id="btn-dict"
+          class="control-btn"
+          title="Free Dictionary Explorer"
+          aria-label="Dictionary Explorer"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path
+              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+            ></path>
+          </svg>
+        </button> -->
+      </div>
+    </header>
+
+    <!-- Main Landing Container -->
+    <main id="view-home" class="view-screen active">
+      <div class="landing-content">
+        <!-- Brand Logo Section with Doodle Rays -->
+        <div class="brand-hero">
+          <div class="logo-wrapper">
+            <div class="sun-rays left-rays">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <img
+              src="resources/codingjr.webp"
+              alt="CodingJr Logo"
+              class="brand-logo-img"
+              id="main-logo"
+              onerror="this.src = 'codingjr.webp'"
+            />
+            <div class="sun-rays right-rays">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <h1 class="brand-tagline">Small Steps. Big Ideas.</h1>
+          <p class="brand-subtext">
+            Interactive coding labs for curious minds — from 10 years to
+            graduation!
+          </p>
+        </div>
+
+        <!-- Mode Selection Cards Grid -->
+        <div class="cards-container">
+          <!-- Arcade Mode Card -->
+          <div class="game-card arcade-card" id="card-arcade">
+            <div class="card-visual">
+              <img
+                src="resources/arcade_robot.jpg"
+                alt="Arcade Robot"
+                class="card-img"
+              />
+            </div>
+            <div class="card-body">
+              <h2 class="card-title">Play Arcade</h2>
+              <p class="card-desc">Think fast,<br />type fast!</p>
+              <button class="btn-play btn-play-arcade" id="btn-start-arcade">
+                Play Now <span class="arrow">&rarr;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Blocks Mode Card -->
+          <div class="game-card blocks-card" id="card-blocks">
+            <div class="card-visual">
+              <img
+                src="resources/blocks_cubes.jpg"
+                alt="Blocks Cubes"
+                class="card-img"
+              />
+            </div>
+            <div class="card-body">
+              <h2 class="card-title">Play Blocks</h2>
+              <p class="card-desc">Take your time and<br />puzzle it out!</p>
+              <button class="btn-play btn-play-blocks" id="btn-start-blocks">
+                Play Now <span class="arrow">&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Hint / Chevron -->
+        <div class="adventure-footer">
+          <p class="adventure-prompt">
+            — Ready to start your coding adventure? —
+          </p>
+          <div class="chevron-bounce" id="btn-scroll-info">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#3b82f6"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Page Footer -->
+      <footer class="page-footer">
+        <div class="footer-left">
+          <span>CodingJr AI</span>
+          <span class="divider">|</span>
+          <span>Semantic Experiences</span>
+        </div>
+        <!-- <div class="footer-right">
+        <button class="footer-link" id="btn-privacy">Privacy & Terms</button>
+      </div> -->
+      </footer>
+    </main>
+
+    <!-- ================= ARCADE GAME VIEW ================= -->
+    <section id="view-arcade" class="view-screen hidden">
+      <div class="game-header">
+        <div class="game-header-left">
+          <button class="btn-back" id="btn-arcade-back">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Home
+          </button>
+          <div class="game-badge">Arcade Mode</div>
+        </div>
+        <div class="game-stats">
+          <div class="stat-pill">
+            <span class="stat-label">SCORE</span>
+            <span id="arcade-score" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">STREAK</span>
+            <span id="arcade-streak" class="stat-value">x1</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">LEVEL</span>
+            <span id="arcade-level" class="stat-value">1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arcade-arena">
+        <div class="arcade-container">
+          <div class="danger-line-indicator">
+            <span>TOP DANGER LINE</span>
+          </div>
+          <div id="arcade-word-stack" class="word-stack">
+            <!-- Word rows populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Arcade Input HUD -->
+        <div class="game-input-bar">
+          <div class="target-clue-label">
+            Target:
+            <span id="arcade-target-label" class="target-highlight">...</span>
+          </div>
+          <form id="arcade-form" class="clue-form" onsubmit="return false;">
+            <input
+              type="text"
+              id="arcade-input"
+              placeholder="Type a related word or clue..."
+              autocomplete="off"
+            />
+            <button type="submit" id="arcade-submit-btn" class="btn-submit">
+              Submit Clue
+            </button>
+          </form>
+          <div class="api-status" id="arcade-api-status">
+            <span class="api-dot"></span> Powered by Datamuse API
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= BLOCKS GAME VIEW ================= -->
+    <section id="view-blocks" class="view-screen hidden">
+      <div class="game-header">
+        <div class="game-header-left">
+          <button class="btn-back" id="btn-blocks-back">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            Home
+          </button>
+          <div class="game-badge blocks-badge">Blocks Mode</div>
+        </div>
+        <div class="game-stats">
+          <div class="stat-pill">
+            <span class="stat-label">SCORE</span>
+            <span id="blocks-score" class="stat-value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-label">CLEARED</span>
+            <span id="blocks-cleared" class="stat-value">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="blocks-arena">
+        <div id="blocks-grid" class="blocks-grid">
+          <!-- 4x7 block cells -->
+        </div>
+
+        <div class="game-input-bar">
+          <div class="target-clue-label">
+            Target Color:
+            <span id="blocks-target-label" class="target-highlight"
+              >Any Match</span
+            >
+          </div>
+          <form id="blocks-form" class="clue-form" onsubmit="return false;">
+            <input
+              type="text"
+              id="blocks-input"
+              placeholder="Type a clue to match any block on board..."
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              id="blocks-submit-btn"
+              class="btn-submit btn-submit-purple"
+            >
+              Submit Clue
+            </button>
+          </form>
+          <div class="api-status">
+            <span class="api-dot"></span> Powered by Free Dictionary API
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DICTIONARY EXPLORER MODAL ================= -->
+    <div id="modal-dict" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-icon">📖</div>
+            <h3>Dictionary & Semantics Explorer</h3>
+          </div>
+          <button class="modal-close" id="btn-close-dict">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Search words directly using the Free Dictionary API
+            (<code>api.dictionaryapi.dev</code>):
+          </p>
+          <div class="dict-search-box">
+            <input
+              type="text"
+              id="dict-search-input"
+              placeholder="Enter word (e.g. hello, galaxy, logic)..."
+              value="hello"
+            />
+            <button id="btn-dict-search" class="btn-search">Look Up</button>
+          </div>
+          <div id="dict-results" class="dict-results">
+            <!-- Populated dynamically via fetch -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= INFO MODAL ================= -->
+    <div id="modal-info" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-icon">💡</div>
+            <h3>About CodingJr Semantic Labs</h3>
+          </div>
+          <button class="modal-close" id="btn-close-info">&times;</button>
+        </div>
+        <div class="modal-body info-body">
+          <h4>How It Works</h4>
+          <p>
+            CodingJr Semantic Labs lets you train your vocabulary and
+            associative thinking using real-time Natural Language Processing and
+            dictionary semantics.
+          </p>
+
+          <div class="rule-box">
+            <strong>🎮 Arcade Mode</strong>
+            <p>
+              Type clues that are semantically connected to the target words.
+              The AI evaluates semantic proximity and scores your match before
+              the stack hits the danger line!
+            </p>
+          </div>
+
+          <div class="rule-box">
+            <strong>🧩 Blocks Mode</strong>
+            <p>
+              Take your time to find words matching color clusters. Solve the
+              puzzle by grouping and clearing connected blocks.
+            </p>
+          </div>
+
+          <div class="rule-box">
+            <strong>🤖 Automated Solver API</strong>
+            <p>
+              Developers and students can connect automated Python models to
+              solve games via Selenium or the built-in
+              <code>window.game.currentGame</code> JS interface.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PRIVACY & TERMS MODAL ================= -->
+    <div id="modal-privacy" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-icon">🛡️</div>
+            <h3>CodingJr Privacy & Terms</h3>
+          </div>
+          <button class="modal-close" id="btn-close-privacy">&times;</button>
+        </div>
+        <div class="modal-body info-body">
+          <p>
+            Welcome to <strong>CodingJr</strong>! We are dedicated to providing
+            safe, engaging, and interactive educational environments for
+            learners of all ages.
+          </p>
+          <p>
+            <strong>Data & Privacy:</strong> No personal student data is
+            collected or tracked. Dictionary searches and semantic calculations
+            run securely against open public APIs.
+          </p>
+          <p>
+            <strong>Educational License:</strong> Designed for classrooms,
+            coding clubs, and independent learning from age 10 to graduation.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="game.js"></script>
+  </body>
+</html>

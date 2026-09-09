@@ -1,7 +1,4 @@
 from argparse import ArgumentParser
-from models.custom_model_generator import create_custom_model
-from models.model_2 import run_model as run_model_2
-from models.model_1 import run_model as run_model_1
 
 '''
     We started with model 1 using the api calls to get synonyms each time
@@ -23,7 +20,10 @@ base_score = 0.3
 if __name__ == '__main__':
 
     if args.model == '2':
+        from models.custom_model_generator import create_custom_model
+        from models.model_2 import run_model as run_model_2
         create_custom_model(base_score, model_name)
         run_model_2(model_name)
     else:
+        from models.model_1 import run_model as run_model_1
         run_model_1()
