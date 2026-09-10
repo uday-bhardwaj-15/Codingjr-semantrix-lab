@@ -80,70 +80,10 @@
       </svg>
     </div>
 
-    <!-- Top Right Navigation / Utility Buttons -->
-    <header class="top-nav">
-      <!-- <div class="nav-controls">
-        <button
-          id="btn-sound-toggle"
-          class="control-btn"
-          title="Toggle Sound"
-          aria-label="Toggle Sound"
-        >
-          <svg
-            id="icon-sound-on"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path
-              d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"
-            ></path>
-          </svg>
-          <svg
-            id="icon-sound-off"
-            class="hidden"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-        </button> -->
-<!-- 
-        <button
-          id="btn-contrast-toggle"
-          class="control-btn"
-          title="Color Assist & Contrast"
-          aria-label="High Contrast"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </button> -->
-
+    <!-- Main Landing Container -->
+    <main id="view-home" class="view-screen active">
+      <!-- Home top bar with Info Button -->
+      <div class="landing-top-bar">
         <button
           id="btn-info"
           class="control-btn"
@@ -165,34 +105,8 @@
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
         </button>
-
-        <!-- <button
-          id="btn-dict"
-          class="control-btn"
-          title="Free Dictionary Explorer"
-          aria-label="Dictionary Explorer"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path
-              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-            ></path>
-          </svg>
-        </button> -->
       </div>
-    </header>
 
-    <!-- Main Landing Container -->
-    <main id="view-home" class="view-screen active">
       <div class="landing-content">
         <!-- Brand Logo Section with Doodle Rays -->
         <div class="brand-hero">
@@ -260,40 +174,7 @@
             </div>
           </div>
         </div>
-
-        <!-- Bottom Hint / Chevron -->
-        <div class="adventure-footer">
-          <p class="adventure-prompt">
-            — Ready to start your coding adventure? —
-          </p>
-          <div class="chevron-bounce" id="btn-scroll-info">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#3b82f6"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-        </div>
       </div>
-
-      <!-- Bottom Page Footer -->
-      <footer class="page-footer">
-        <div class="footer-left">
-          <span>CodingJr AI</span>
-          <span class="divider">|</span>
-          <span>Semantic Experiences</span>
-        </div>
-        <!-- <div class="footer-right">
-        <button class="footer-link" id="btn-privacy">Privacy & Terms</button>
-      </div> -->
-      </footer>
     </main>
 
     <!-- ================= ARCADE GAME VIEW ================= -->
@@ -314,6 +195,26 @@
             Home
           </button>
           <div class="game-badge">Arcade Mode</div>
+          <button
+            class="control-btn btn-header-info"
+            title="How to Play"
+            aria-label="Game Info"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
         </div>
         <div class="game-stats">
           <div class="stat-pill">
@@ -332,13 +233,17 @@
       </div>
 
       <div class="arcade-arena">
-        <div class="arcade-container">
-          <div class="danger-line-indicator">
-            <span>TOP DANGER LINE</span>
+        <div class="arcade-wrapper" id="arcade-wrapper">
+          <div class="arcade-container">
+            <div class="danger-line-indicator">
+              <span>TOP DANGER LINE</span>
+            </div>
+            <div id="arcade-word-stack" class="word-stack">
+              <!-- Word rows populated dynamically -->
+            </div>
           </div>
-          <div id="arcade-word-stack" class="word-stack">
-            <!-- Word rows populated dynamically -->
-          </div>
+          <canvas id="arcade-blast-canvas" class="arcade-blast-canvas"></canvas>
+          <div id="arcade-floating-score" class="floating-score-container"></div>
         </div>
 
         <!-- Arcade Input HUD -->
@@ -358,9 +263,6 @@
               Submit Clue
             </button>
           </form>
-          <div class="api-status" id="arcade-api-status">
-            <span class="api-dot"></span> Powered by Datamuse API
-          </div>
         </div>
       </div>
     </section>
@@ -383,6 +285,26 @@
             Home
           </button>
           <div class="game-badge blocks-badge">Blocks Mode</div>
+          <button
+            class="control-btn btn-header-info"
+            title="How to Play"
+            aria-label="Game Info"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
         </div>
         <div class="game-stats">
           <div class="stat-pill">
@@ -397,8 +319,12 @@
       </div>
 
       <div class="blocks-arena">
-        <div id="blocks-grid" class="blocks-grid">
-          <!-- 4x7 block cells -->
+        <div class="blocks-grid-wrapper" id="blocks-wrapper">
+          <div id="blocks-grid" class="blocks-grid">
+            <!-- 5x6 block cells -->
+          </div>
+          <canvas id="blocks-blast-canvas" class="blocks-blast-canvas"></canvas>
+          <div id="blocks-floating-score" class="floating-score-container"></div>
         </div>
 
         <div class="game-input-bar">
@@ -423,9 +349,6 @@
               Submit Clue
             </button>
           </form>
-          <div class="api-status">
-            <span class="api-dot"></span> Powered by Free Dictionary API
-          </div>
         </div>
       </div>
     </section>

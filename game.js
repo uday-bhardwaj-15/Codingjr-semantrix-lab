@@ -92,6 +92,17 @@ class SoundFX {
     setTimeout(() => this.playTone(659.25, 'triangle', 0.2, 0.15), 140);
   }
 
+  blast() {
+    this.playTone(160, 'sawtooth', 0.22, 0.22);
+    setTimeout(() => this.playTone(85, 'triangle', 0.3, 0.25), 30);
+    setTimeout(() => this.playTone(580, 'sine', 0.12, 0.12), 60);
+  }
+
+  cascade() {
+    this.playTone(392, 'sine', 0.08, 0.08); // G4
+    setTimeout(() => this.playTone(523.25, 'sine', 0.08, 0.08), 50); // C5
+  }
+
   error() {
     this.playTone(220, 'sawtooth', 0.2, 0.1);
   }
@@ -99,61 +110,259 @@ class SoundFX {
 
 const sfx = new SoundFX();
 
-// Datamuse API Cache & Semantic Calculator
+// Hardware-accelerated Canvas Particle Explosion Engine
+class ParticleEngine {
+  constructor() {
+    this.canvases = new Map();
+    this.particles = [];
+    this.animating = false;
+    this.colorMap = {
+      "block-blue": ["#60a5fa", "#3b82f6", "#93c5fd", "#2563eb", "#dbeafe"],
+      "block-yellow": ["#fde047", "#facc15", "#eab308", "#ca8a04", "#fef08a"],
+      "block-purple": ["#c084fc", "#a855f7", "#9333ea", "#7e22ce", "#f3e8ff"],
+      "block-teal": ["#2dd4bf", "#14b8a6", "#0d9488", "#0f766e", "#ccfbf1"],
+      "block-rose": ["#fb7185", "#f43f5e", "#e11d48", "#be123c", "#ffe4e6"],
+      "arcade": ["#3b82f6", "#60a5fa", "#facc15", "#f43f5e", "#10b981", "#a855f7"]
+    };
+    window.addEventListener("resize", () => this.resizeAll());
+  }
+
+  getCanvas(canvasId) {
+    if (!this.canvases.has(canvasId)) {
+      const el = document.getElementById(canvasId);
+      if (el) {
+        this.canvases.set(canvasId, { el, ctx: el.getContext("2d") });
+      }
+    }
+    return this.canvases.get(canvasId);
+  }
+
+  resizeAll() {
+    ["blocks-blast-canvas", "arcade-blast-canvas"].forEach(id => {
+      const entry = this.getCanvas(id);
+      if (entry && entry.el && entry.el.parentElement) {
+        const rect = entry.el.parentElement.getBoundingClientRect();
+        entry.el.width = rect.width;
+        entry.el.height = rect.height;
+      }
+    });
+  }
+
+  spawnBlast(rect, colorClass = "arcade", count = 24, canvasId = "blocks-blast-canvas") {
+    this.resizeAll();
+    const entry = this.getCanvas(canvasId);
+    if (!entry || !entry.ctx || !entry.el) return;
+
+    const parentRect = entry.el.getBoundingClientRect();
+    const cx = rect.left - parentRect.left + rect.width / 2;
+    const cy = rect.top - parentRect.top + rect.height / 2;
+
+    const palette = this.colorMap[colorClass] || this.colorMap["arcade"];
+
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
+      const speed = Math.random() * 8 + 3.5;
+      const size = Math.random() * 9 + 4;
+      const color = palette[Math.floor(Math.random() * palette.length)];
+
+      this.particles.push({
+        canvasId,
+        x: cx + (Math.random() - 0.5) * (rect.width * 0.4),
+        y: cy + (Math.random() - 0.5) * (rect.height * 0.4),
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - Math.random() * 2.5,
+        size,
+        color,
+        alpha: 1.0,
+        decay: Math.random() * 0.025 + 0.02,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 0.4,
+        gravity: 0.32,
+        drag: 0.96,
+        shape: Math.random() > 0.4 ? "shard" : "rect"
+      });
+    }
+
+    if (!this.animating) {
+      this.animating = true;
+      requestAnimationFrame(() => this.loop());
+    }
+  }
+
+  loop() {
+    // Clear active canvases
+    ["blocks-blast-canvas", "arcade-blast-canvas"].forEach(id => {
+      const entry = this.getCanvas(id);
+      if (entry && entry.ctx) {
+        entry.ctx.clearRect(0, 0, entry.el.width, entry.el.height);
+      }
+    });
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.vy *= p.drag;
+      p.rot += p.vRot;
+      p.alpha -= p.decay;
+
+      if (p.alpha <= 0) {
+        this.particles.splice(i, 1);
+        continue;
+      }
+
+      const entry = this.getCanvas(p.canvasId);
+      if (!entry || !entry.ctx) continue;
+      const ctx = entry.ctx;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+
+      if (p.shape === "shard") {
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size);
+        ctx.lineTo(p.size * 0.85, p.size * 0.85);
+        ctx.lineTo(-p.size * 0.85, p.size * 0.85);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      }
+
+      ctx.restore();
+    }
+
+    if (this.particles.length > 0) {
+      requestAnimationFrame(() => this.loop());
+    } else {
+      ["blocks-blast-canvas", "arcade-blast-canvas"].forEach(id => {
+        const entry = this.getCanvas(id);
+        if (entry && entry.ctx) {
+          entry.ctx.clearRect(0, 0, entry.el.width, entry.el.height);
+        }
+      });
+      this.animating = false;
+    }
+  }
+}
+
+const particleEngine = new ParticleEngine();
+
+// Extended domain conceptual clusters for deep word association
+const DOMAIN_CLUSTERS = [
+  ["triangle", "trigon", "trilateral", "triangular", "equilateral", "scalene", "isosceles", "hypotenuse", "polygon", "pyramid", "delta", "angle", "geometry", "shape", "square", "rectangle", "circle", "tetrahedron", "math", "mathematics", "trio", "triplet", "triad"],
+  ["space", "rocket", "astronaut", "satellite", "orbit", "planet", "galaxy", "star", "telescope", "moon", "mars", "earth", "alien", "astronomy", "cosmos", "universe", "speed of light"],
+  ["sea", "ocean", "water", "waterfall", "wave", "beach", "submarine", "ship", "boat", "fish", "shark", "sailor", "pond", "island"],
+  ["food", "cake", "bread", "cheese", "apple", "banana", "lemon", "orange", "breakfast", "dinner", "lunch", "sandwich", "dessert", "donut", "egg", "pasta", "potato", "rice", "strawberry", "tomato", "coffee"],
+  ["animal", "bear", "bird", "cat", "chicken", "dog", "elephant", "falcon", "horse", "insect", "kitten", "lion", "mammal", "puppy", "reptile", "spider", "turtle", "wolf", "zebra", "zoology"],
+  ["weather", "cloud", "rain", "rainbow", "snow", "thunder", "lightning", "storm", "wind", "winter", "summer", "sun", "sunshine", "tornado", "volcano"],
+  ["tech", "computer", "laptop", "software", "internet", "website", "email", "robot", "laser", "radar", "radio", "telephone", "television", "technology", "video game"],
+  ["music", "song", "guitar", "piano", "violin", "orchestra", "symphony", "jazz", "band"],
+  ["circus", "clown", "acrobat", "juggler", "carnival", "tent", "magic", "show", "performance", "lion", "elephant"],
+  ["navigation", "map", "compass", "gps", "direction", "travel", "journey", "pilot", "sailor", "road", "route"]
+];
+
+// Bidirectional Datamuse API Cache & Semantic Calculator
 class DatamuseEngine {
   constructor() {
     this.cache = new Map();
   }
 
-  async getSimilarWords(clue) {
-    const cleanClue = clue.trim().toLowerCase();
-    if (this.cache.has(cleanClue)) {
-      return this.cache.get(cleanClue);
+  async getSimilarWords(term) {
+    const cleanTerm = term.trim().toLowerCase();
+    if (this.cache.has(cleanTerm)) {
+      return this.cache.get(cleanTerm);
     }
 
     try {
-      const res = await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(cleanClue)}&max=60`);
+      const res = await fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(cleanTerm)}&max=100`);
       if (!res.ok) {
-        this.cache.set(cleanClue, []);
+        this.cache.set(cleanTerm, []);
         return [];
       }
       const data = await res.json();
-      this.cache.set(cleanClue, data);
+      this.cache.set(cleanTerm, data);
       return data;
     } catch (err) {
-      console.warn("Datamuse API fetch notice:", err);
+      console.warn("Datamuse fetch notice:", err);
       return [];
     }
+  }
+
+  preloadCandidates(candidates) {
+    candidates.forEach(w => {
+      if (w) {
+        const clean = w.trim().toLowerCase();
+        if (!this.cache.has(clean)) {
+          this.getSimilarWords(clean);
+        }
+      }
+    });
   }
 
   async scoreWords(clue, candidates) {
     const cleanClue = clue.trim().toLowerCase();
     const scoredList = [];
-    const related = await this.getSimilarWords(cleanClue);
     
-    // Map related words by score
-    const scoreMap = new Map();
-    if (Array.isArray(related)) {
-      related.forEach((item, idx) => {
+    // 1. Forward lookup: words similar to clue
+    const forwardRelated = await this.getSimilarWords(cleanClue);
+    const forwardMap = new Map();
+    if (Array.isArray(forwardRelated)) {
+      forwardRelated.forEach((item, idx) => {
         const w = item.word.toLowerCase();
-        // Higher rank gets higher normalized score (1.0 down to 0.4)
-        const sim = Math.max(0.4, 1.0 - (idx / related.length) * 0.6);
-        scoreMap.set(w, sim);
+        forwardMap.set(w, Math.max(0.4, 1.0 - (idx / forwardRelated.length) * 0.6));
       });
     }
 
-    candidates.forEach(word => {
-      const cleanWord = word.trim().toLowerCase();
-      if (cleanWord === cleanClue) {
-        scoredList.push({ word, score: 1.0 });
-      } else if (scoreMap.has(cleanWord)) {
-        scoredList.push({ word, score: scoreMap.get(cleanWord) });
-      } else if (cleanWord.includes(cleanClue) || cleanClue.includes(cleanWord)) {
-        scoredList.push({ word, score: 0.85 });
-      } else {
-        // Fallback string similarity
-        scoredList.push({ word, score: this.stringSimilarity(cleanClue, cleanWord) });
+    // 2. Reverse lookup for all candidates (Bidirectional)
+    const reversePromises = candidates.map(c => this.getSimilarWords(c.toLowerCase()));
+    const reverseResults = await Promise.all(reversePromises);
+
+    // 3. Score each candidate
+    candidates.forEach((cand, i) => {
+      const cleanCand = cand.trim().toLowerCase();
+      let score = 0;
+
+      if (cleanCand === cleanClue) {
+        score = 1.0;
       }
+
+      // Check Forward: is candidate in related(clue)?
+      if (forwardMap.has(cleanCand)) {
+        score = Math.max(score, forwardMap.get(cleanCand));
+      }
+
+      // Check Reverse (Bidirectional): is clue in related(candidate)?
+      const candRel = reverseResults[i];
+      if (Array.isArray(candRel)) {
+        const matchIdx = candRel.findIndex(item => item.word.toLowerCase() === cleanClue);
+        if (matchIdx !== -1) {
+          const revScore = Math.max(0.45, 1.0 - (matchIdx / candRel.length) * 0.55);
+          score = Math.max(score, revScore);
+        }
+      }
+
+      // Check substring / stem relations (e.g. triangle / triangular, space / spaceship)
+      if (cleanCand.includes(cleanClue) || cleanClue.includes(cleanCand)) {
+        score = Math.max(score, 0.88);
+      }
+
+      // Check Domain Conceptual Clusters
+      const inSameCluster = DOMAIN_CLUSTERS.some(cluster => cluster.includes(cleanClue) && cluster.includes(cleanCand));
+      if (inSameCluster) {
+        score = Math.max(score, 0.82);
+      }
+
+      if (score === 0) {
+        score = this.stringSimilarity(cleanClue, cleanCand);
+      }
+
+      scoredList.push({ word: cand, score });
     });
 
     scoredList.sort((a, b) => b.score - a.score);
@@ -184,9 +393,8 @@ class ArcadeGame {
     this.points = 0;
     this.streak = 1;
     this.level = 1;
-    this.words = ["Mind", "Atom", "Email", "Dinner", "Day", "Pond", "Magic", "Song", "Book"];
-    this.targetLines = ["Mind", "Atom"];
-    this.bannedPrefixes = [{ prefix: "min" }, { prefix: "ato" }];
+    this.words = [];
+    this.targetLines = [];
     this.spawnTimer = null;
     this.maxVisible = 10;
   }
@@ -200,13 +408,14 @@ class ArcadeGame {
     this.targetLines = [];
     this.updateStats();
 
-    // Initial words stack
+    // Initial words stack (6 words)
     const shuffled = [...DEFAULT_WORDS].sort(() => 0.5 - Math.random());
     for (let i = 0; i < 6; i++) {
       this.words.push(shuffled[i]);
     }
     this.selectTargets();
     this.render();
+    datamuse.preloadCandidates(this.words);
 
     if (this.spawnTimer) clearInterval(this.spawnTimer);
     this.spawnTimer = setInterval(() => {
@@ -223,7 +432,6 @@ class ArcadeGame {
     for (let i = 0; i < numTargets; i++) {
       this.targetLines.push(this.words[i]);
     }
-    this.bannedPrefixes = this.targetLines.map(t => ({ prefix: t.slice(0, 3).toLowerCase() }));
     
     const targetLabel = document.getElementById("arcade-target-label");
     if (targetLabel) targetLabel.textContent = this.targetLines.join(", ");
@@ -239,23 +447,16 @@ class ArcadeGame {
     this.words.push(next);
     this.selectTargets();
     this.render();
+    datamuse.preloadCandidates(this.words);
   }
 
-  async userSubmit(clue, orig) {
+  async userSubmit(clue) {
     if (!clue || this.words.length === 0) return;
 
     const cleanClue = clue.trim();
     if (cleanClue.length === 0) return;
 
-    // Check banned prefix
-    for (const b of this.bannedPrefixes) {
-      if (cleanClue.toLowerCase().startsWith(b.prefix)) {
-        sfx.error();
-        return;
-      }
-    }
-
-    // Score words using Datamuse API
+    // Score words using bidirectional Datamuse API
     const scored = await datamuse.scoreWords(cleanClue, this.words);
     const best = scored[0];
 
@@ -266,7 +467,17 @@ class ArcadeGame {
       const isTarget = this.targetLines.includes(best.word);
 
       if (index !== -1) {
-        this.words.splice(index, 1);
+        // Trigger blast animation on the tile
+        const container = document.getElementById("arcade-word-stack");
+        if (container && container.children[index]) {
+          const tileEl = container.children[index];
+          tileEl.classList.add("word-blasting");
+          particleEngine.spawnBlast(tileEl.getBoundingClientRect(), isTarget ? "block-rose" : "arcade", 26, "arcade-blast-canvas");
+        }
+
+        sfx.blast();
+        this.showFloatingScore(index, isTarget ? 2 : 1);
+
         const earned = Math.round(best.score * 1000 * this.streak * (isTarget ? 2 : 1));
         this.points += earned;
         this.streak = Math.min(10, this.streak + 1);
@@ -276,16 +487,47 @@ class ArcadeGame {
           sfx.combo();
         }
 
-        sfx.clear();
+        // Wait brief blast interval before removing from stack
+        await new Promise(r => setTimeout(r, 220));
+
+        this.words.splice(index, 1);
+        
+        // Auto-replenish if word count drops below 4
+        if (this.words.length < 4) {
+          this.spawnWord();
+        }
+
         this.selectTargets();
         this.updateStats();
         this.render();
+        sfx.clear();
       }
     } else {
       this.streak = 1;
       this.updateStats();
       sfx.error();
     }
+  }
+
+  showFloatingScore(index, multiplier) {
+    const scoreContainer = document.getElementById("arcade-floating-score");
+    const container = document.getElementById("arcade-word-stack");
+    if (!scoreContainer || !container || !container.children[index]) return;
+
+    const tileEl = container.children[index];
+    const gridRect = scoreContainer.parentElement.getBoundingClientRect();
+    const tileRect = tileEl.getBoundingClientRect();
+    const x = tileRect.left - gridRect.left + tileRect.width / 2;
+    const y = tileRect.top - gridRect.top + tileRect.height / 2;
+
+    const pill = document.createElement("div");
+    pill.className = "floating-score-pill";
+    pill.style.left = `${x}px`;
+    pill.style.top = `${y}px`;
+    pill.textContent = `+${Math.round(1000 * multiplier)}`;
+    scoreContainer.appendChild(pill);
+
+    setTimeout(() => pill.remove(), 1200);
   }
 
   updateStats() {
@@ -336,31 +578,38 @@ class BlocksGame {
     this.colors = ["block-blue", "block-yellow", "block-purple", "block-teal", "block-rose"];
     this.rows = 6;
     this.cols = 5;
+    this.isBlasting = false;
   }
 
   start() {
     this.score = 0;
     this.cleared = 0;
+    this.isBlasting = false;
     this.updateStats();
     this.initGrid();
     this.render();
+    particleEngine.resizeAll();
   }
 
   initGrid() {
     this.grid = [];
     const pool = [...DEFAULT_WORDS].sort(() => 0.5 - Math.random());
     let poolIdx = 0;
+    const allWords = [];
     for (let r = 0; r < this.rows; r++) {
       const row = [];
       for (let c = 0; c < this.cols; c++) {
+        const w = pool[poolIdx % pool.length];
+        allWords.push(w);
         row.push({
-          word: pool[poolIdx % pool.length],
+          word: w,
           color: this.colors[Math.floor(Math.random() * this.colors.length)]
         });
         poolIdx++;
       }
       this.grid.push(row);
     }
+    datamuse.preloadCandidates(allWords);
   }
 
   updateStats() {
@@ -370,8 +619,47 @@ class BlocksGame {
     if (elCleared) elCleared.textContent = this.cleared;
   }
 
+  // 4-Way Orthogonal Connected Group Search (BFS / Flood Fill)
+  // Only connects Up, Down, Left, Right — NOT diagonal!
+  getConnectedGroup(startR, startC, targetColor) {
+    if (startR < 0 || startR >= this.rows || startC < 0 || startC >= this.cols) return [];
+    if (!this.grid[startR][startC] || this.grid[startR][startC].color !== targetColor) return [];
+
+    const visited = Array.from({ length: this.rows }, () => Array(this.cols).fill(false));
+    const group = [];
+    const queue = [[startR, startC]];
+    visited[startR][startC] = true;
+
+    while (queue.length > 0) {
+      const [r, c] = queue.shift();
+      group.push({ r, c });
+
+      // 4 directions only (Up, Down, Left, Right - NO diagonal)
+      const neighbors = [
+        [r - 1, c], // Up
+        [r + 1, c], // Down
+        [r, c - 1], // Left
+        [r, c + 1]  // Right
+      ];
+
+      for (const [nr, nc] of neighbors) {
+        if (
+          nr >= 0 && nr < this.rows &&
+          nc >= 0 && nc < this.cols &&
+          !visited[nr][nc] &&
+          this.grid[nr][nc] &&
+          this.grid[nr][nc].color === targetColor
+        ) {
+          visited[nr][nc] = true;
+          queue.push([nr, nc]);
+        }
+      }
+    }
+    return group;
+  }
+
   async userSubmit(clue) {
-    if (!clue) return;
+    if (!clue || this.isBlasting) return;
     const cleanClue = clue.trim();
     if (cleanClue.length === 0) return;
 
@@ -384,54 +672,143 @@ class BlocksGame {
       }
     }
 
+    if (flatCells.length === 0) return;
+
     const scored = await datamuse.scoreWords(cleanClue, flatCells.map(fc => fc.word));
     const topScored = scored[0];
 
     if (topScored && topScored.score >= 0.3) {
       sfx.match();
-      const matchCellObj = flatCells.find(fc => fc.word === topScored.word);
+      const matchCellObj = flatCells.find(fc => fc.word.toLowerCase() === topScored.word.toLowerCase());
       if (matchCellObj) {
-        const targetColor = matchCellObj.cell.color;
-        let count = 0;
-
-        for (let r = 0; r < this.rows; r++) {
-          for (let c = 0; c < this.cols; c++) {
-            if (this.grid[r][c] && this.grid[r][c].color === targetColor) {
-              this.grid[r][c] = null;
-              count++;
-            }
-          }
-        }
-
-        this.score += count * 250;
-        this.cleared += count;
-        this.refillGrid();
-        this.updateStats();
-        this.render();
-        sfx.clear();
+        await this.explodeConnected(matchCellObj.r, matchCellObj.c);
       }
     } else {
       sfx.error();
     }
   }
 
-  refillGrid() {
+  async explodeConnected(startR, startC) {
+    const targetCell = this.grid[startR][startC];
+    if (!targetCell) return;
+    const targetColor = targetCell.color;
+
+    // Get strictly 4-way orthogonal connected cells of the same color
+    const connected = this.getConnectedGroup(startR, startC, targetColor);
+    if (connected.length === 0) return;
+
+    this.isBlasting = true;
+    sfx.blast();
+
+    // Trigger visual blast animations on DOM elements
+    const gridContainer = document.getElementById("blocks-grid");
+    if (gridContainer) {
+      gridContainer.classList.add("grid-shake");
+      setTimeout(() => gridContainer.classList.remove("grid-shake"), 360);
+    }
+
+    // Spawn canvas particles and apply blasting CSS class
+    connected.forEach(({ r, c }) => {
+      const idx = r * this.cols + c;
+      const cellEl = gridContainer ? gridContainer.children[idx] : null;
+      if (cellEl) {
+        cellEl.classList.add("block-blasting");
+        particleEngine.spawnBlast(cellEl.getBoundingClientRect(), targetColor, 22, "blocks-blast-canvas");
+      }
+    });
+
+    // Spawn floating score indicator
+    this.showFloatingScore(startR, startC, connected.length);
+
+    // Update score
+    const earned = connected.length * 250 * (connected.length > 2 ? 2 : 1);
+    this.score += earned;
+    this.cleared += connected.length;
+    this.updateStats();
+
+    // Wait for blast particle animation
+    await new Promise(resolve => setTimeout(resolve, 240));
+
+    // Clear matching cells from data grid
+    connected.forEach(({ r, c }) => {
+      this.grid[r][c] = null;
+    });
+
+    // Apply Tetris-style column gravity drop and top refill
+    this.applyGravityAndRefill();
+    this.render(true);
+    sfx.cascade();
+
+    if (connected.length >= 3) {
+      setTimeout(() => sfx.combo(), 150);
+    }
+
+    this.isBlasting = false;
+  }
+
+  // Tetris-style Column Cascading Gravity & Refill
+  applyGravityAndRefill() {
     const pool = [...DEFAULT_WORDS].sort(() => 0.5 - Math.random());
     let poolIdx = 0;
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        if (!this.grid[r][c]) {
+    const newWords = [];
+
+    for (let c = 0; c < this.cols; c++) {
+      // 1. Collect all non-null blocks in this column from bottom to top
+      const columnBlocks = [];
+      for (let r = this.rows - 1; r >= 0; r--) {
+        if (this.grid[r][c]) {
+          columnBlocks.push(this.grid[r][c]);
+        }
+      }
+
+      // 2. Place remaining blocks starting from bottom up
+      let fillIdx = 0;
+      for (let r = this.rows - 1; r >= 0; r--) {
+        if (fillIdx < columnBlocks.length) {
+          this.grid[r][c] = columnBlocks[fillIdx];
+          fillIdx++;
+        } else {
+          // 3. Refill the empty top rows with fresh random blocks
+          const w = pool[poolIdx % pool.length];
+          newWords.push(w);
           this.grid[r][c] = {
-            word: pool[poolIdx % pool.length],
-            color: this.colors[Math.floor(Math.random() * this.colors.length)]
+            word: w,
+            color: this.colors[Math.floor(Math.random() * this.colors.length)],
+            isNew: true
           };
           poolIdx++;
         }
       }
     }
+    datamuse.preloadCandidates(newWords);
   }
 
-  render() {
+  showFloatingScore(r, c, count) {
+    const scoreContainer = document.getElementById("blocks-floating-score");
+    const gridContainer = document.getElementById("blocks-grid");
+    if (!scoreContainer || !gridContainer) return;
+
+    const idx = r * this.cols + c;
+    const cellEl = gridContainer.children[idx];
+    if (!cellEl) return;
+
+    const gridRect = gridContainer.getBoundingClientRect();
+    const cellRect = cellEl.getBoundingClientRect();
+    const x = cellRect.left - gridRect.left + cellRect.width / 2;
+    const y = cellRect.top - gridRect.top + cellRect.height / 2;
+
+    const pill = document.createElement("div");
+    pill.className = "floating-score-pill";
+    pill.style.left = `${x}px`;
+    pill.style.top = `${y}px`;
+    const bonus = count >= 3 ? ` (${count}x COMBO!)` : "";
+    pill.textContent = `+${count * 250 * (count > 2 ? 2 : 1)}${bonus}`;
+    scoreContainer.appendChild(pill);
+
+    setTimeout(() => pill.remove(), 1200);
+  }
+
+  render(withDropAnimation = false) {
     const container = document.getElementById("blocks-grid");
     if (!container) return;
     container.innerHTML = "";
@@ -441,13 +818,52 @@ class BlocksGame {
         const cell = this.grid[r][c];
         const div = document.createElement("div");
         div.className = `block-cell ${cell ? cell.color : ""}`;
+        if (cell && (cell.isNew || withDropAnimation)) {
+          div.classList.add("block-dropping");
+          delete cell.isNew;
+        }
         div.textContent = cell ? cell.word : "";
+        div.dataset.row = r;
+        div.dataset.col = c;
+
+        // Visual hover highlighting of connected group
+        div.addEventListener("mouseenter", () => {
+          if (!cell || this.isBlasting) return;
+          const group = this.getConnectedGroup(r, c, cell.color);
+          this.highlightGroup(group);
+        });
+
+        div.addEventListener("mouseleave", () => {
+          this.clearHighlights();
+        });
+
+        // NOTE: Direct click to clear is disabled so students must type clues!
+
         container.appendChild(div);
       }
     }
   }
 
-  stop() {}
+  highlightGroup(group) {
+    const container = document.getElementById("blocks-grid");
+    if (!container) return;
+    this.clearHighlights();
+    group.forEach(({ r, c }) => {
+      const idx = r * this.cols + c;
+      const cellEl = container.children[idx];
+      if (cellEl) cellEl.classList.add("block-highlight");
+    });
+  }
+
+  clearHighlights() {
+    const container = document.getElementById("blocks-grid");
+    if (!container) return;
+    Array.from(container.children).forEach(el => el.classList.remove("block-highlight"));
+  }
+
+  stop() {
+    this.clearHighlights();
+  }
 }
 
 // Global Game instances & Selenium automation hook
@@ -475,6 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
       view.classList.remove("hidden");
       view.classList.add("active");
     }
+    particleEngine.resizeAll();
   }
 
   // Play Arcade Button
@@ -509,7 +926,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const input = document.getElementById("arcade-input");
     if (input && input.value) {
-      arcadeGame.userSubmit(input.value, input.value);
+      arcadeGame.userSubmit(input.value);
       input.value = "";
     }
   });
@@ -555,13 +972,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("btn-close-dict")?.addEventListener("click", () => modalDict?.classList.add("hidden"));
 
-  document.getElementById("btn-info")?.addEventListener("click", () => modalInfo?.classList.remove("hidden"));
+  // Open info modal from any info button
+  document.querySelectorAll("#btn-info, .btn-header-info").forEach(btn => {
+    btn.addEventListener("click", () => modalInfo?.classList.remove("hidden"));
+  });
   document.getElementById("btn-close-info")?.addEventListener("click", () => modalInfo?.classList.add("hidden"));
 
   document.getElementById("btn-privacy")?.addEventListener("click", () => modalPrivacy?.classList.remove("hidden"));
   document.getElementById("btn-close-privacy")?.addEventListener("click", () => modalPrivacy?.classList.add("hidden"));
-
-  document.getElementById("btn-scroll-info")?.addEventListener("click", () => modalInfo?.classList.remove("hidden"));
 
   [modalDict, modalInfo, modalPrivacy].forEach(m => {
     m?.addEventListener("click", (e) => {
